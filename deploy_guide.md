@@ -1,84 +1,74 @@
-# Cloud Deployment & DNS Setup Guide: https://www.dpokmm.panchayatautomation.in/ps-data
+# Cloudflare Deployment Guide: https://dpokmm.panchayatautomation.in/ps-data
 
-This portal hosts **Details of Panchayat Secretaries Working in Khammam District (PS Details – Khammam)** completely in the cloud, independent of your office desktop.
+This portal hosts **Details of Panchayat Secretaries Working in Khammam District (PS Details – Khammam)**, available exclusively via **Cloudflare Zero Trust Edge Network** on your custom domain:
+
+👉 **`https://dpokmm.panchayatautomation.in/ps-data`**
 
 ---
 
 ## 1. Cloud Architecture & Zero-Disturbance Guarantee
 
 ```
-+-------------------------------------------------------------+
-|                 Cloudflare DNS Manager                       |
-|               (panchayatautomation.in)                      |
-+------------------------------+------------------------------+
-                               |
-       +-----------------------+-----------------------+
-       |                                               |
-[ Root Domain: @ ]                         [ Subdomain: dpokmm ]
-panchayatautomation.in                     dpokmm.panchayatautomation.in
-       |                                               |
-       v                                               v
-[ Cloudflare Zero Trust Tunnel ]           [ Cloud Host (Render) ]
-Office Desktop (ePanchayat)                dpokmm-ps-portal.onrender.com
-100% UNTOUCHED & UNDISTURBED               100% INDEPENDENT CLOUD
++---------------------------------------------------------------------------------+
+|                       Cloudflare Edge Network & DNS                             |
+|                         (panchayatautomation.in)                                |
++---------------------------------------+-----------------------------------------+
+                                        |
+       +--------------------------------+--------------------------------+
+       |                                                                 |
+[ Root Domain: @ ]                                            [ Subdomain: dpokmm ]
+panchayatautomation.in                                        dpokmm.panchayatautomation.in
+       |                                                                 |
+       v                                                                 v
+[ Cloudflare Zero Trust Tunnel ]                              [ Cloudflare Zero Trust Tunnel ]
+Office Desktop (ePanchayat)                                   PS Details – Khammam (Port 8000)
+100% UNTOUCHED & UNDISTURBED                                  EXCLUSIVELY SERVES /ps-data
 ```
 
-- **Office Desktop Remains 100% Untouched:** Your existing site (`https://panchayatautomation.in/`) running via Cloudflare Tunnel from your office desktop continues running exactly as before without any changes.
-- **Dedicated Cloud Service:** The new portal is deployed on **Render** (Singapore Region) backed by GitHub repository [`DPMKMM/dpokmm-ps-portal`](https://github.com/DPMKMM/dpokmm-ps-portal).
-- **24/7 Uptime:** Even if the office desktop is turned off, restarted, or disconnected, the cloud portal remains live.
+- **Render Removed Completely:** No external third-party domains (`onrender.com`).
+- **Exclusive URL:** The application is routed strictly and exclusively through `https://dpokmm.panchayatautomation.in/ps-data`.
+- **Existing Website Untouched:** `https://www.panchayatautomation.in/` remains undisturbed.
 
 ---
 
-## 2. Live Cloud Service Details
+## 2. One-Time Step: Add Public Hostname in Cloudflare Zero Trust Dashboard
 
-- **GitHub Repository:** [https://github.com/DPMKMM/dpokmm-ps-portal](https://github.com/DPMKMM/dpokmm-ps-portal)
-- **Direct Cloud URL:** [https://dpokmm-ps-portal.onrender.com/ps-data](https://dpokmm-ps-portal.onrender.com/ps-data)
-- **Health Check Endpoint:** [https://dpokmm-ps-portal.onrender.com/health](https://dpokmm-ps-portal.onrender.com/health)
-- **Render Dashboard:** [https://dashboard.render.com/web/srv-dbna1d5g1s2s73c3vveg](https://dashboard.render.com/web/srv-dbna1d5g1s2s73c3vveg)
-- **Service ID:** `srv-dbna1d5g1s2s73c3vveg`
-- **Region:** Singapore
+1. Log in to **[Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)**.
+2. Navigate to **Networks** → **Tunnels**.
+3. Click your existing tunnel (`e57ffde8-ddcc-4528-8655-68ffa09e0222`) and select **Configure**.
+4. Switch to the **Public Hostnames** tab.
+5. Click **Add a public hostname**:
+   - **Subdomain:** `dpokmm`
+   - **Domain:** `panchayatautomation.in`
+   - **Path:** *(leave blank to forward all paths, or enter `ps-data`)*
+   - **Service Type:** `HTTP`
+   - **URL:** `localhost:8000` (or `127.0.0.1:8000`)
+6. Click **Save hostname**.
 
----
-
-## 3. One-Time Step: Cloudflare DNS Configuration
-
-To activate your custom domain `https://dpokmm.panchayatautomation.in/ps-data` and `https://www.dpokmm.panchayatautomation.in/ps-data`:
-
-1. Log in to your **Cloudflare Dashboard** at [https://dash.cloudflare.com/](https://dash.cloudflare.com/).
-2. Select your domain **`panchayatautomation.in`**.
-3. In the left sidebar, click **DNS** -> **Records**.
-4. Click **Add record** and enter:
-   - **Type:** `CNAME`
-   - **Name:** `dpokmm`
-   - **Target:** `dpokmm-ps-portal.onrender.com`
-   - **Proxy status:** `Proxied` (Orange Cloud) or `DNS only` (Grey Cloud)
-   - **TTL:** Auto
-5. Click **Save**.
-6. *(Optional for `www.dpokmm`)* Click **Add record** again:
-   - **Type:** `CNAME`
-   - **Name:** `www.dpokmm`
-   - **Target:** `dpokmm-ps-portal.onrender.com`
-   - **Proxy status:** `Proxied` (Orange Cloud)
-   - **TTL:** Auto
-7. Click **Save**.
-
-> **Note:** Because this only creates the `dpokmm` and `www.dpokmm` subdomains, your root domain (`panchayatautomation.in`) and its Cloudflare Tunnel to your office desktop are completely unaffected.
+*(Optional for `www.dpokmm`)*: Add another public hostname with Subdomain `www.dpokmm`, Domain `panchayatautomation.in`, URL `localhost:8000`.
 
 ---
 
-## 4. Automatic Continuous Deployment (CI/CD)
+## 3. How to Launch the Portal
 
-Whenever you push any updates or fixes to `main`:
+To start the portal and connect to the Cloudflare Zero Trust Tunnel:
+
+### Option 1 (One-Click):
+Double-click **`Start_Portal.bat`** in this folder.
+
+### Option 2 (Command Line):
 ```bash
-git add .
-git commit -m "Update portal features"
-git push origin main
+python run_cloudflare_portal.py
 ```
-Render will automatically detect the commit, rebuild the Docker container, and deploy the new version with zero manual intervention.
+
+The script will:
+1. Verify the local portal server is active on `http://127.0.0.1:8000`.
+2. Connect to the Cloudflare Zero Trust edge network via `cloudflared.exe`.
+3. Keep the public address **`https://dpokmm.panchayatautomation.in/ps-data`** live and secure.
 
 ---
 
-## 5. Preloaded Admin & Mandal Login Credentials
+## 4. Preloaded Admin & Mandal Login Credentials
 
 ### District Super Admin (All 20 Mandals & 571 GPs)
 - **Username:** `admin`
