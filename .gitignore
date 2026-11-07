@@ -12,3 +12,6 @@ venv/
 .pytest_cache/
 .DS_Store
 Thumbs.db
+cloudflared.exe
+cloudflared
+.env
