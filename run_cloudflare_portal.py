@@ -29,7 +29,7 @@ CLOUDFLARED_EXE = BASE_DIR / ("cloudflared.exe" if sys.platform == "win32" else 
 env_file = BASE_DIR / ".env"
 token_from_env = os.getenv("CLOUDFLARE_TUNNEL_TOKEN", "").strip()
 custom_domain = os.getenv("CUSTOM_DOMAIN", "dpokmm.panchayatautomation.in").strip()
-port = int(os.getenv("PORT", "8000"))
+port = int(os.getenv("PORT", "8080"))
 
 if not token_from_env and env_file.exists():
     try:

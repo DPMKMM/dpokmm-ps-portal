@@ -32,7 +32,7 @@ def main():
     print("   Password: Viewer@Khammam2026")
     print("-" * 80)
     host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8080))
     print(f"Starting Web Application Server at: http://{host}:{port}")
     print("=" * 80)
     

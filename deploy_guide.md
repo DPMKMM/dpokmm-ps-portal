@@ -21,13 +21,13 @@ panchayatautomation.in                                        dpokmm.panchayatau
        |                                                                 |
        v                                                                 v
 [ Cloudflare Zero Trust Tunnel ]                              [ Cloudflare Zero Trust Tunnel ]
-Office Desktop (ePanchayat)                                   PS Details – Khammam (Port 8000)
+Office Desktop (ePanchayat)                                   PS Details – Khammam (Port 8080)
 100% UNTOUCHED & UNDISTURBED                                  EXCLUSIVELY SERVES /ps-data
 ```
 
 - **Render Removed Completely:** No external third-party domains (`onrender.com`).
 - **Exclusive URL:** The application is routed strictly and exclusively through `https://dpokmm.panchayatautomation.in/ps-data`.
-- **Existing Website Untouched:** `https://www.panchayatautomation.in/` remains undisturbed.
+- **Existing Website Untouched:** `https://www.panchayatautomation.in/` remains undisturbed on Port 8000.
 
 ---
 
@@ -37,15 +37,15 @@ Office Desktop (ePanchayat)                                   PS Details – Kha
 2. Navigate to **Networks** → **Tunnels**.
 3. Click your existing tunnel (`e57ffde8-ddcc-4528-8655-68ffa09e0222`) and select **Configure**.
 4. Switch to the **Public Hostnames** tab.
-5. Click **Add a public hostname**:
+5. Click **Add a public hostname** (or edit existing `dpokmm`):
    - **Subdomain:** `dpokmm`
    - **Domain:** `panchayatautomation.in`
    - **Path:** *(leave blank to forward all paths, or enter `ps-data`)*
    - **Service Type:** `HTTP`
-   - **URL:** `localhost:8000` (or `127.0.0.1:8000`)
+   - **URL:** `localhost:8080` (or `127.0.0.1:8080`)
 6. Click **Save hostname**.
 
-*(Optional for `www.dpokmm`)*: Add another public hostname with Subdomain `www.dpokmm`, Domain `panchayatautomation.in`, URL `localhost:8000`.
+*(Optional for `www.dpokmm`)*: Add another public hostname with Subdomain `www.dpokmm`, Domain `panchayatautomation.in`, URL `localhost:8080`.
 
 ---
 
@@ -62,7 +62,7 @@ python run_cloudflare_portal.py
 ```
 
 The script will:
-1. Verify the local portal server is active on `http://127.0.0.1:8000`.
+1. Verify the local portal server is active on `http://127.0.0.1:8080`.
 2. Connect to the Cloudflare Zero Trust edge network via `cloudflared.exe`.
 3. Keep the public address **`https://dpokmm.panchayatautomation.in/ps-data`** live and secure.
 

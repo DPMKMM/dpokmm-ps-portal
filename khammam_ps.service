@@ -8,7 +8,7 @@ Group=www-data
 WorkingDirectory=/var/www/dpokmm_ps_database
 Environment="PATH=/var/www/dpokmm_ps_database/venv/bin"
 Environment="DATABASE_URL=sqlite:////var/www/dpokmm_ps_database/khammam_ps.db"
-ExecStart=/var/www/dpokmm_ps_database/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4
+ExecStart=/var/www/dpokmm_ps_database/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8080 --workers 4
 
 Restart=always
 RestartSec=5

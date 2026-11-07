@@ -153,13 +153,13 @@ python run.py
 ```
 Or directly using Uvicorn:
 ```powershell
-uvicorn app.main:app --host 127.0.0.1 --port 8000
+uvicorn app.main:app --host 127.0.0.1 --port 8080
 ```
 
 ### Access Application:
 Open your browser and navigate to:
 ```
-http://127.0.0.1:8000
+http://127.0.0.1:8080
 ```
 
 ### Run Automated Test Suite:

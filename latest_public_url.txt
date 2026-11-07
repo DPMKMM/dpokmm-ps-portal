@@ -1,0 +1,4 @@
+Public URL: https://dpokmm.panchayatautomation.in/ps-data
+Local Access: http://127.0.0.1:8080/ps-data
+Status: Connected via Cloudflare Zero Trust Tunnel
+Connected: Sat Nov  7 09:42:35 2026
