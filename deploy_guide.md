@@ -1,110 +1,93 @@
-# Deployment Guide: Hosting at https://www.dpokmm.panchayatautomation.in/psdata
+# Cloud Deployment & DNS Setup Guide: https://www.dpokmm.panchayatautomation.in/ps-data
 
-This guide provides step-by-step instructions for hosting **Details of Panchayat Secretaries Working in Khammam District** on your domain **`panchayatautomation.in`** under the dedicated subdomain and path:
-
-👉 **`https://www.dpokmm.panchayatautomation.in/psdata`**
+This portal hosts **Details of Panchayat Secretaries Working in Khammam District (PS Details – Khammam)** completely in the cloud, independent of your office desktop.
 
 ---
 
-## 1. Domain & DNS Configuration
+## 1. Cloud Architecture & Zero-Disturbance Guarantee
 
-1. Log in to your domain registrar / DNS manager (Cloudflare, GoDaddy, Hostinger, Namecheap, etc.) for `panchayatautomation.in`.
-2. Add the following DNS records:
-   - **Type:** `A`  
-     **Name / Host:** `dpokmm`  
-     **Value / Target:** Your Server Public IP (e.g., `123.45.67.89`)  
-     **TTL:** Automatic / 300 seconds
-   - **Type:** `CNAME`  
-     **Name / Host:** `www.dpokmm`  
-     **Value / Target:** `dpokmm.panchayatautomation.in`
+```
++-------------------------------------------------------------+
+|                 Cloudflare DNS Manager                       |
+|               (panchayatautomation.in)                      |
++------------------------------+------------------------------+
+                               |
+       +-----------------------+-----------------------+
+       |                                               |
+[ Root Domain: @ ]                         [ Subdomain: dpokmm ]
+panchayatautomation.in                     dpokmm.panchayatautomation.in
+       |                                               |
+       v                                               v
+[ Cloudflare Zero Trust Tunnel ]           [ Cloud Host (Render) ]
+Office Desktop (ePanchayat)                dpokmm-ps-portal.onrender.com
+100% UNTOUCHED & UNDISTURBED               100% INDEPENDENT CLOUD
+```
+
+- **Office Desktop Remains 100% Untouched:** Your existing site (`https://panchayatautomation.in/`) running via Cloudflare Tunnel from your office desktop continues running exactly as before without any changes.
+- **Dedicated Cloud Service:** The new portal is deployed on **Render** (Singapore Region) backed by GitHub repository [`DPMKMM/dpokmm-ps-portal`](https://github.com/DPMKMM/dpokmm-ps-portal).
+- **24/7 Uptime:** Even if the office desktop is turned off, restarted, or disconnected, the cloud portal remains live.
 
 ---
 
-## 2. Server Deployment Options
+## 2. Live Cloud Service Details
 
-### Option A: Standard VPS / Cloud Server (Ubuntu / Debian / Nginx)
+- **GitHub Repository:** [https://github.com/DPMKMM/dpokmm-ps-portal](https://github.com/DPMKMM/dpokmm-ps-portal)
+- **Direct Cloud URL:** [https://dpokmm-ps-portal.onrender.com/ps-data](https://dpokmm-ps-portal.onrender.com/ps-data)
+- **Health Check Endpoint:** [https://dpokmm-ps-portal.onrender.com/health](https://dpokmm-ps-portal.onrender.com/health)
+- **Render Dashboard:** [https://dashboard.render.com/web/srv-dbna1d5g1s2s73c3vveg](https://dashboard.render.com/web/srv-dbna1d5g1s2s73c3vveg)
+- **Service ID:** `srv-dbna1d5g1s2s73c3vveg`
+- **Region:** Singapore
 
-#### Step 1: Upload Files
-Upload the project folder contents to your production server directory, for example:
+---
+
+## 3. One-Time Step: Cloudflare DNS Configuration
+
+To activate your custom domain `https://dpokmm.panchayatautomation.in/ps-data` and `https://www.dpokmm.panchayatautomation.in/ps-data`:
+
+1. Log in to your **Cloudflare Dashboard** at [https://dash.cloudflare.com/](https://dash.cloudflare.com/).
+2. Select your domain **`panchayatautomation.in`**.
+3. In the left sidebar, click **DNS** -> **Records**.
+4. Click **Add record** and enter:
+   - **Type:** `CNAME`
+   - **Name:** `dpokmm`
+   - **Target:** `dpokmm-ps-portal.onrender.com`
+   - **Proxy status:** `Proxied` (Orange Cloud) or `DNS only` (Grey Cloud)
+   - **TTL:** Auto
+5. Click **Save**.
+6. *(Optional for `www.dpokmm`)* Click **Add record** again:
+   - **Type:** `CNAME`
+   - **Name:** `www.dpokmm`
+   - **Target:** `dpokmm-ps-portal.onrender.com`
+   - **Proxy status:** `Proxied` (Orange Cloud)
+   - **TTL:** Auto
+7. Click **Save**.
+
+> **Note:** Because this only creates the `dpokmm` and `www.dpokmm` subdomains, your root domain (`panchayatautomation.in`) and its Cloudflare Tunnel to your office desktop are completely unaffected.
+
+---
+
+## 4. Automatic Continuous Deployment (CI/CD)
+
+Whenever you push any updates or fixes to `main`:
 ```bash
-sudo mkdir -p /var/www/dpokmm_ps_database
-# Copy/rsync all project files into /var/www/dpokmm_ps_database
+git add .
+git commit -m "Update portal features"
+git push origin main
 ```
-
-#### Step 2: Install Python & Dependencies
-```bash
-sudo apt update && sudo apt install -y python3 python3-pip python3-venv nginx certbot python3-certbot-nginx
-cd /var/www/dpokmm_ps_database
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt # Or install fastapi uvicorn argon2-cffi openpyxl reportlab pyjwt httpx
-```
-
-#### Step 3: Enable Systemd Service
-Copy the provided unit file:
-```bash
-sudo cp khammam_ps.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable khammam_ps
-sudo systemctl start khammam_ps
-sudo systemctl status khammam_ps
-```
-
-#### Step 4: Configure Nginx & SSL Certificate
-```bash
-sudo cp nginx.conf /etc/nginx/sites-available/dpokmm.panchayatautomation.in
-sudo ln -s /etc/nginx/sites-available/dpokmm.panchayatautomation.in /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-
-# Issue free SSL Certificate with Let's Encrypt
-sudo certbot --nginx -d dpokmm.panchayatautomation.in -d www.dpokmm.panchayatautomation.in
-```
+Render will automatically detect the commit, rebuild the Docker container, and deploy the new version with zero manual intervention.
 
 ---
 
-### Option B: cPanel / Shared Hosting (via Setup Python App)
+## 5. Preloaded Admin & Mandal Login Credentials
 
-If your website `panchayatautomation.in` is hosted on cPanel:
+### District Super Admin (All 20 Mandals & 571 GPs)
+- **Username:** `admin`
+- **Password:** `Admin@Khammam2026`
 
-1. **Create Subdomain in cPanel:**
-   - Go to **Domains** → **Create A New Domain**.
-   - Domain: `dpokmm.panchayatautomation.in`
-   - Document Root: `public_html/dpokmm`
-2. **Setup Python Application:**
-   - In cPanel, search for **Setup Python App**.
-   - Click **Create Application**.
-   - Python Version: `3.10` or `3.11` or `3.12`.
-   - Application Root: `dpokmm_ps_database`
-   - Application URL: `dpokmm.panchayatautomation.in/psdata` (or root).
-   - Application Startup File: `passenger_wsgi.py` (or run Uvicorn reverse proxy).
-3. **Using Apache Reverse Proxy (`.htaccess`):**
-   If running Uvicorn on port `8000` via background daemon, add this to `public_html/dpokmm/.htaccess`:
-   ```apache
-   RewriteEngine On
-   RewriteRule ^psdata/(.*)$ http://127.0.0.1:8000/psdata/$1 [P,L]
-   RewriteRule ^psdata$ http://127.0.0.1:8000/psdata [P,L]
-   ```
+### Mandal Admins (Single Active Session Enforced)
+- **Username:** `<mandal_name>` (e.g. `kallur`, `enkoor`, `sathupally`, `penubally`, `thallada`)
+- **Password:** `Mandal@<Mandal_LGD>` (e.g. `Mandal@5069` for Kallur, `Mandal@5065` for Enkoor)
 
----
-
-## 3. Link from Main Website (https://www.panchayatautomation.in/)
-
-To link this portal from your main website homepage or menu, simply add this anchor button:
-
-```html
-<a href="https://www.dpokmm.panchayatautomation.in/psdata" target="_blank" class="btn-portal">
-  <span>District Panchayat Office, Khammam</span>
-  <strong>Panchayat Secretaries Database & Deputation Portal</strong>
-</a>
-```
-
----
-
-## 4. Dual-Path Routing Verified
-
-The application is engineered to work seamlessly on both routes:
-- `https://www.dpokmm.panchayatautomation.in/psdata`
-- `http://127.0.0.1:8000/` (Local / development)
-
-All asset links (`/static/...`), API endpoints (`/api/...`), and exports automatically adapt their paths based on the current URL prefix.
+### District Collectorate Read-Only Viewer
+- **Username:** `viewer`
+- **Password:** `Viewer@Khammam2026`
